@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Media Sphere Music Player</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Quantico:wght@400;700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+  <div class="app-container">
+    <div class="titlebar">
+      <div class="titlebar-drag-region"></div>
+      <div class="window-controls">
+        <button id="minimizeBtn" class="control-btn"><i class="fas fa-window-minimize"></i></button>
+        <button id="maximizeBtn" class="control-btn"><i class="fas fa-window-maximize"></i></button>
+        <button id="closeBtn" class="control-btn"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+    
+    <aside class="sidebar">
+      <div class="logo">
+        <span class="logo-icon"><i class="fas fa-compact-disc fa-spin-pulse"></i></span>
+        <span class="logo-text">Media Sphere Music Player</span>
+      </div>
+      
+      <nav>
+        <ul id="navMenu">
+          <li class="active" data-view="home"><i class="fas fa-home"></i> Home</li>
+          <li data-view="library"><i class="fas fa-music"></i> Your Library</li>
+          <li data-view="playlists"><i class="fas fa-list"></i> Playlists</li>
+          <li data-view="browse"><i class="fas fa-search"></i> Browse</li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-section">
+        <h3>Library</h3>
+        <div class="library-actions">
+          <button id="addFilesBtn" class="sidebar-btn"><i class="fas fa-file-audio"></i> Add Files</button>
+          <button id="addFolderBtn" class="sidebar-btn"><i class="fas fa-folder-plus"></i> Add Folder</button>
+        </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <h3>Playlists</h3>
+        <div class="playlist-actions">
+          <button id="createPlaylistBtn" class="sidebar-btn"><i class="fas fa-plus"></i> New Playlist</button>
+        </div>
+        <ul id="playlistMenu" class="playlist-menu">
+          <!-- Playlists will be added here -->
+        </ul>
+      </div>
+    </aside>
+
+    <main class="main-view">
+      <header class="top-bar">
+        <div class="view-title">Now Playing</div>
+        <div class="search-container">
+          <input type="text" id="searchInput" placeholder="Search your library...">
+          <i class="fas fa-search search-icon"></i>
+        </div>
+      </header>
+
+      <div class="view-container">
+        <!-- Home View -->
+        <section id="homeView" class="view active-view">
+          <div class="welcome-section">
+            <h1>Welcome to Media Sphere</h1>
+            <p>Start Playing Now</p>
+          </div>
+
+          <div class="now-playing-showcase">
+            <div class="album-art-container">
+              <div id="albumArt" class="album-art">
+                <i class="fas fa-music album-icon"></i>
+              </div>
+              <div class="visualizer-container">
+                <canvas id="audioVisualizer"></canvas>
+              </div>
+            </div>
+            <div class="track-details">
+              <h2 id="nowPlayingTitle">No Track Selected</h2>
+              <p id="nowPlayingArtist">-</p>
+            </div>
+          </div>
+
+          <div class="recently-added">
+            <h2>Recently Added</h2>
+            <div id="recentlyAddedTracks" class="track-grid">
+              <!-- Recently added tracks will appear here -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Library View -->
+        <section id="libraryView" class="view">
+          <h1>Your Library</h1>
+          
+          <div class="library-controls">
+            <div class="sort-controls">
+              <label for="sortBy">Sort by:</label>
+              <select id="sortBy">
+                <option value="name">Name</option>
+                <option value="dateAdded">Date Added</option>
+              </select>
+            </div>
+            <div class="view-controls">
+              <button id="listViewBtn" class="view-btn active"><i class="fas fa-list"></i></button>
+              <button id="gridViewBtn" class="view-btn"><i class="fas fa-th-large"></i></button>
+            </div>
+          </div>
+          
+          <div id="libraryTracksContainer" class="list-view">
+            <table id="trackTable" class="track-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Title</th>
+                  <th>Artist</th>
+                  <th>Duration</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="trackList">
+                <!-- Track list here -->
+              </tbody>
+            </table>
+            
+            <div id="trackGrid" class="track-grid">
+              <!-- Grid view of tracks -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Playlists View -->
+        <section id="playlistsView" class="view">
+          <h1>Your Playlists</h1>
+          
+          <div class="playlists-container">
+            <div id="playlistsGrid" class="playlists-grid">
+              <!-- Playlists will appear here -->
+              <div class="playlist-card add-playlist">
+                <div class="playlist-add-icon">
+                  <i class="fas fa-plus"></i>
+                </div>
+                <p>Create New Playlist</p>
+              </div>
+            </div>
+          </div>
+          
+          <div id="playlistDetailView" class="playlist-detail hidden">
+            <div class="playlist-header">
+              <button id="backToPlaylists" class="back-btn"><i class="fas fa-arrow-left"></i> Back</button>
+              <h2 id="playlistDetailName">Playlist Name</h2>
+              <p id="playlistDetailInfo">0 tracks • 00:00</p>
+            </div>
+            
+            <div class="playlist-actions">
+              <button id="playPlaylistBtn" class="action-btn"><i class="fas fa-play"></i> Play All</button>
+              <button id="shufflePlaylistBtn" class="action-btn"><i class="fas fa-random"></i> Shuffle</button>
+              <button id="editPlaylistBtn" class="action-btn"><i class="fas fa-edit"></i> Edit</button>
+            </div>
+            
+            <table class="track-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Title</th>
+                  <th>Artist</th>
+                  <th>Duration</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="playlistDetailTracks">
+                <!-- Playlist tracks here -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Browse View -->
+        <section id="browseView" class="view">
+          <h1>Browse Your Files</h1>
+          
+          <div class="browse-instructions">
+            <p>Browse and manage your music files</p>
+            <div class="action-buttons">
+              <button id="browseFolderBtn" class="action-btn"><i class="fas fa-folder-open"></i> Browse Folder</button>
+              <button id="browseFilesBtn" class="action-btn"><i class="fas fa-file-audio"></i> Browse Files</button>
+            </div>
+          </div>
+          
+          <div id="fileExplorer" class="file-explorer">
+            <!-- File explorer content -->
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer class="player-controls">
+      <div class="track-info">
+        <div class="mini-album-art" id="miniAlbumArt">
+          <i class="fas fa-music"></i>
+        </div>
+        <div class="track-text">
+          <span id="currentTrack">Select a track</span>
+          <span id="currentArtist" class="artist-name">-</span>
+        </div>
+        <div class="track-actions">
+          <button id="addToPlaylistBtn" class="action-icon" title="Add to playlist"><i class="fas fa-plus"></i></button>
+          <button id="favoriteBtn" class="action-icon" title="Add to favorites"><i class="far fa-heart"></i></button>
+        </div>
+      </div>
+      
+      <div class="player-center">
+        <div class="controls">
+          <button id="shuffleBtn" class="control-icon" title="Shuffle"><i class="fas fa-random"></i></button>
+          <button id="prev" class="control-icon" title="Previous"><i class="fas fa-step-backward"></i></button>
+          <button id="playPause" class="play-btn" title="Play/Pause"><i class="fas fa-play"></i></button>
+          <button id="next" class="control-icon" title="Next"><i class="fas fa-step-forward"></i></button>
+          <button id="repeatBtn" class="control-icon" title="Repeat"><i class="fas fa-redo"></i></button>
+        </div>
+        
+        <div class="progress-container">
+          <span id="currentTime">00:00</span>
+          <div class="seekbar-container">
+            <input type="range" id="seekBar" value="0" min="0" max="100" />
+            <div class="progress-bar" id="progressBar"></div>
+          </div>
+          <span id="totalTime">00:00</span>
+        </div>
+      </div>
+      
+      <div class="player-right">
+        <button id="volumeBtn" class="control-icon" title="Volume"><i class="fas fa-volume-up"></i></button>
+        <div class="volume-slider-container">
+          <input type="range" id="volumeSlider" value="100" min="0" max="100" />
+        </div>
+        <button id="expandBtn" class="control-icon" title="Expand Player"><i class="fas fa-expand"></i></button>
+      </div>
+    </footer>
+    
+    <!-- Modal for creating playlists -->
+    <div id="playlistModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create New Playlist</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="playlistName">Playlist Name</label>
+            <input type="text" id="playlistName" placeholder="Enter playlist name">
+          </div>
+          <div class="form-group">
+            <label>Add Tracks</label>
+            <div class="track-selection">
+              <div class="track-search">
+                <input type="text" id="trackSearchInput" placeholder="Search tracks...">
+              </div>
+              <div class="track-selection-list" id="trackSelectionList">
+                <!-- Available tracks will appear here -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="cancelPlaylistBtn" class="btn btn-secondary">Cancel</button>
+          <button id="savePlaylistBtn" class="btn btn-primary">Create Playlist</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

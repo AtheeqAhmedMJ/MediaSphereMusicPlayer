@@ -1,0 +1,14 @@
+{
+  "name": "electron-music-player",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^25.0.0",
+    "play-sound": "^1.1.6"
+  }
+}

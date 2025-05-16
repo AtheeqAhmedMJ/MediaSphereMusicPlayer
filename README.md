@@ -13,9 +13,6 @@ MediaSphere is a desktop music player built using [Electron](https://www.electro
 - Modern, responsive, theme-aware UI
 - Electron-based window controls (minimize, maximize, close)
 
-## Screenshots
-
-> _Coming Soon_ — You can contribute by submitting UI screenshots!
 
 ## Installation
 

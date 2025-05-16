@@ -42,6 +42,7 @@ This will launch the Electron window and load the local audio player interface.
 ### Project Structure
 
 ```
+|-- playlists  #create a folder named playlist to save playlist locally *Important
 ├── main.js         # Electron main process
 ├── preload.js      # Context bridge for secure IPC
 ├── renderer.js     # Handles UI logic and DOM interactions

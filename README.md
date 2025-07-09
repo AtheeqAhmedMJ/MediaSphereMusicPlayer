@@ -6,6 +6,7 @@ MediaSphere is a desktop music player built using [Electron](https://www.electro
 
 - Browse and play local audio files and folders
 - Playlist creation and management
+- **Bookmark system for favorite tracks**
 - Repeat and shuffle playback modes
 - Search functionality across the library
 - Dual view options: list and grid
@@ -48,6 +49,11 @@ This will launch the Electron window and load the local audio player interface.
 ├── assets/         # Icons or music placeholders
 ├── package.json    # Project config and dependencies
 ```
+
+**Data Storage:**
+- `tracks.json` - Library tracks database
+- `bookmarks.json` - Bookmarked tracks database
+- `playlists/` - User-created playlists
 
 ### Technologies Used
 

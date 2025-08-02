@@ -10,6 +10,7 @@ let mainWindow;
 const userDataPath = app.getPath('userData');
 const playlistsPath = path.join(userDataPath, 'playlists');
 const tracksDbPath = path.join(userDataPath, 'tracks.json');
+const bookmarksDbPath = path.join(userDataPath, 'bookmarks.json');
 
 // Ensure directories exist
 function ensureDirectoriesExist() {
@@ -89,6 +90,31 @@ function getStoredTracks() {
     return [];
   } catch (error) {
     console.error('Error reading tracks from storage:', error);
+    return [];
+  }
+}
+
+// Save bookmarks to storage
+function saveBookmarksToStorage(bookmarks) {
+  try {
+    fs.writeFileSync(bookmarksDbPath, JSON.stringify(bookmarks, null, 2));
+    return true;
+  } catch (error) {
+    console.error('Error saving bookmarks to storage:', error);
+    return false;
+  }
+}
+
+// Get stored bookmarks
+function getStoredBookmarks() {
+  try {
+    if (fs.existsSync(bookmarksDbPath)) {
+      const data = fs.readFileSync(bookmarksDbPath, 'utf8');
+      return JSON.parse(data);
+    }
+    return [];
+  } catch (error) {
+    console.error('Error reading bookmarks from storage:', error);
     return [];
   }
 }
@@ -197,6 +223,69 @@ app.whenReady().then(() => {
   // Get stored tracks
   ipcMain.handle('get-stored-tracks', () => {
     return getStoredTracks();
+  });
+
+  // Add bookmark
+  ipcMain.handle('add-bookmark', async (event, track) => {
+    try {
+      const bookmarks = getStoredBookmarks();
+      const existingIndex = bookmarks.findIndex(b => b.path === track.path);
+      
+      if (existingIndex === -1) {
+        const bookmark = {
+          ...track,
+          bookmarkedAt: new Date().toISOString()
+        };
+        bookmarks.push(bookmark);
+        saveBookmarksToStorage(bookmarks);
+        return { success: true, bookmarked: true };
+      } else {
+        return { success: true, bookmarked: false, message: 'Track already bookmarked' };
+      }
+    } catch (error) {
+      console.error('Error adding bookmark:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Remove bookmark
+  ipcMain.handle('remove-bookmark', async (event, trackPath) => {
+    try {
+      const bookmarks = getStoredBookmarks();
+      const filteredBookmarks = bookmarks.filter(b => b.path !== trackPath);
+      saveBookmarksToStorage(filteredBookmarks);
+      return { success: true };
+    } catch (error) {
+      console.error('Error removing bookmark:', error);
+      return { success: false, error: error.message };
+    }
+  });
+
+  // Get stored bookmarks
+  ipcMain.handle('get-stored-bookmarks', () => {
+    return getStoredBookmarks();
+  });
+
+  // Check if track is bookmarked
+  ipcMain.handle('is-track-bookmarked', async (event, trackPath) => {
+    try {
+      const bookmarks = getStoredBookmarks();
+      return bookmarks.some(b => b.path === trackPath);
+    } catch (error) {
+      console.error('Error checking bookmark status:', error);
+      return false;
+    }
+  });
+
+  // Clear all bookmarks
+  ipcMain.handle('clear-all-bookmarks', async () => {
+    try {
+      saveBookmarksToStorage([]);
+      return { success: true };
+    } catch (error) {
+      console.error('Error clearing all bookmarks:', error);
+      return { success: false, error: error.message };
+    }
   });
 });
 

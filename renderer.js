@@ -3,6 +3,7 @@
 // Global state
 let tracks = [];
 let playlists = [];
+let bookmarks = [];
 let currentTrackIndex = -1;
 let currentPlaylist = null;
 let isPlaying = false;
@@ -56,6 +57,16 @@ const gridViewBtn = document.getElementById('gridViewBtn');
 const playlistsGridEl = document.getElementById('playlistsGrid');
 const playlistMenuEl = document.getElementById('playlistMenu');
 
+// DOM Elements - Bookmarks
+const bookmarkBtn = document.getElementById('bookmarkBtn');
+const clearBookmarksBtn = document.getElementById('clearBookmarksBtn');
+const bookmarkCountEl = document.getElementById('bookmarkCount');
+const bookmarkListEl = document.getElementById('bookmarkList');
+const bookmarkGridEl = document.getElementById('bookmarkGrid');
+const bookmarkListViewBtn = document.getElementById('bookmarkListViewBtn');
+const bookmarkGridViewBtn = document.getElementById('bookmarkGridViewBtn');
+const bookmarkSortByEl = document.getElementById('bookmarkSortBy');
+
 // Visualizer
 const visualizerCanvas = document.getElementById('audioVisualizer');
 const canvasCtx = visualizerCanvas.getContext('2d');
@@ -67,6 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initNavigationControls();
   loadStoredTracks();
   loadPlaylists();
+  loadBookmarks();
   initVisualizer();
 });
 
@@ -105,6 +117,13 @@ async function initApp() {
   savePlaylistBtn.addEventListener('click', createPlaylist);
   cancelPlaylistBtn.addEventListener('click', hidePlaylistModal);
   closeModalBtn.addEventListener('click', hidePlaylistModal);
+  
+  // Bookmark controls
+  bookmarkBtn.addEventListener('click', toggleBookmark);
+  clearBookmarksBtn.addEventListener('click', clearAllBookmarks);
+  bookmarkListViewBtn.addEventListener('click', () => switchBookmarkView('list'));
+  bookmarkGridViewBtn.addEventListener('click', () => switchBookmarkView('grid'));
+  bookmarkSortByEl.addEventListener('change', sortBookmarks);
   
   // Set volume from slider
   audioEl.volume = volumeSlider.value / 100;
@@ -166,6 +185,294 @@ async function loadPlaylists() {
   } catch (error) {
     console.error('Failed to load playlists:', error);
   }
+}
+
+// Load bookmarks from storage
+async function loadBookmarks() {
+  try {
+    bookmarks = await window.electronAPI.getStoredBookmarks();
+    renderBookmarks();
+    updateBookmarkCount();
+  } catch (error) {
+    console.error('Failed to load bookmarks:', error);
+  }
+}
+
+// Toggle bookmark for current track
+async function toggleBookmark() {
+  if (currentTrackIndex === -1) return;
+  
+  const track = tracks[currentTrackIndex];
+  const isBookmarked = await window.electronAPI.isTrackBookmarked(track.path);
+  
+  try {
+    if (isBookmarked) {
+      // Remove bookmark
+      const result = await window.electronAPI.removeBookmark(track.path);
+      if (result.success) {
+        bookmarks = bookmarks.filter(b => b.path !== track.path);
+        updateBookmarkButton(false);
+        renderBookmarks();
+        updateBookmarkCount();
+        showNotification('Bookmark removed', 'success');
+      }
+    } else {
+      // Add bookmark
+      const result = await window.electronAPI.addBookmark(track);
+      if (result.success && result.bookmarked) {
+        bookmarks.push({ ...track, bookmarkedAt: new Date().toISOString() });
+        updateBookmarkButton(true);
+        renderBookmarks();
+        updateBookmarkCount();
+        showNotification('Track bookmarked', 'success');
+      } else if (result.message) {
+        showNotification(result.message, 'info');
+      }
+    }
+  } catch (error) {
+    console.error('Error toggling bookmark:', error);
+    showNotification('Error updating bookmark', 'error');
+  }
+}
+
+// Update bookmark button appearance
+function updateBookmarkButton(isBookmarked) {
+  const icon = bookmarkBtn.querySelector('i');
+  if (isBookmarked) {
+    icon.className = 'fas fa-bookmark';
+    bookmarkBtn.title = 'Remove bookmark';
+  } else {
+    icon.className = 'far fa-bookmark';
+    bookmarkBtn.title = 'Bookmark track';
+  }
+}
+
+// Update bookmark button state based on current track
+async function updateBookmarkButtonState(trackPath) {
+  try {
+    const isBookmarked = await window.electronAPI.isTrackBookmarked(trackPath);
+    updateBookmarkButton(isBookmarked);
+  } catch (error) {
+    console.error('Error checking bookmark state:', error);
+    updateBookmarkButton(false);
+  }
+}
+
+// Clear all bookmarks
+async function clearAllBookmarks() {
+  if (bookmarks.length === 0) {
+    showNotification('No bookmarks to clear', 'info');
+    return;
+  }
+  
+  if (confirm('Are you sure you want to clear all bookmarks?')) {
+    try {
+      bookmarks = [];
+      await window.electronAPI.clearAllBookmarks();
+      renderBookmarks();
+      updateBookmarkCount();
+      updateBookmarkButton(false);
+      showNotification('All bookmarks cleared', 'success');
+    } catch (error) {
+      console.error('Error clearing bookmarks:', error);
+      showNotification('Error clearing bookmarks', 'error');
+    }
+  }
+}
+
+// Update bookmark count display
+function updateBookmarkCount() {
+  bookmarkCountEl.textContent = `${bookmarks.length} bookmark${bookmarks.length !== 1 ? 's' : ''}`;
+}
+
+// Render bookmarks
+function renderBookmarks() {
+  bookmarkListEl.innerHTML = '';
+  bookmarkGridEl.innerHTML = '';
+  
+  if (bookmarks.length === 0) {
+    bookmarkListEl.innerHTML = '<tr><td colspan="5" class="empty-message">No bookmarked tracks. Bookmark some tracks to see them here!</td></tr>';
+    return;
+  }
+  
+  bookmarks.forEach((bookmark, idx) => {
+    const { artist, title } = parseTrackInfo(bookmark.name);
+    const mainIndex = tracks.findIndex(t => t.path === bookmark.path);
+    
+    // Create table row
+    const tr = document.createElement('tr');
+    tr.classList.toggle('active', mainIndex === currentTrackIndex);
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${title}</td>
+      <td>${artist}</td>
+      <td>${formatDate(bookmark.bookmarkedAt)}</td>
+      <td>
+        <button class="action-icon play-track-btn" title="Play"><i class="fas fa-play"></i></button>
+        <button class="action-icon remove-bookmark-btn" title="Remove bookmark"><i class="fas fa-bookmark"></i></button>
+      </td>
+    `;
+    
+    // Add event listeners
+    tr.querySelector('.play-track-btn').addEventListener('click', () => {
+      if (mainIndex !== -1) {
+        loadTrack(mainIndex);
+        isPlaying = true;
+        audioEl.play();
+        updatePlayPauseIcon();
+      }
+    });
+    
+    tr.querySelector('.remove-bookmark-btn').addEventListener('click', async () => {
+      await removeBookmark(bookmark.path);
+    });
+    
+    tr.addEventListener('click', (e) => {
+      if (!e.target.closest('button') && mainIndex !== -1) {
+        loadTrack(mainIndex);
+        isPlaying = true;
+        audioEl.play();
+        updatePlayPauseIcon();
+      }
+    });
+    
+    bookmarkListEl.appendChild(tr);
+    
+    // Create grid item
+    const card = document.createElement('div');
+    card.className = 'bookmark-card';
+    card.classList.toggle('active', mainIndex === currentTrackIndex);
+    card.innerHTML = `
+      <div class="bookmark-indicator">
+        <i class="fas fa-bookmark"></i>
+      </div>
+      <button class="remove-bookmark-btn" title="Remove bookmark">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="track-card-art">
+        <i class="fas fa-music"></i>
+        <div class="track-card-overlay">
+          <button class="play-overlay-btn"><i class="fas fa-play"></i></button>
+        </div>
+      </div>
+      <div class="track-card-info">
+        <div class="track-card-title">${title}</div>
+        <div class="track-card-artist">${artist}</div>
+        <div class="bookmark-date">${formatDate(bookmark.bookmarkedAt)}</div>
+      </div>
+    `;
+    
+    card.querySelector('.play-overlay-btn').addEventListener('click', () => {
+      if (mainIndex !== -1) {
+        loadTrack(mainIndex);
+        isPlaying = true;
+        audioEl.play();
+        updatePlayPauseIcon();
+      }
+    });
+    
+    card.querySelector('.remove-bookmark-btn').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await removeBookmark(bookmark.path);
+    });
+    
+    card.addEventListener('click', () => {
+      if (mainIndex !== -1) {
+        loadTrack(mainIndex);
+        isPlaying = true;
+        audioEl.play();
+        updatePlayPauseIcon();
+      }
+    });
+    
+    bookmarkGridEl.appendChild(card);
+  });
+}
+
+// Remove bookmark
+async function removeBookmark(trackPath) {
+  try {
+    const result = await window.electronAPI.removeBookmark(trackPath);
+    if (result.success) {
+      bookmarks = bookmarks.filter(b => b.path !== trackPath);
+      renderBookmarks();
+      updateBookmarkCount();
+      
+      // Update bookmark button if this was the current track
+      if (currentTrackIndex !== -1 && tracks[currentTrackIndex].path === trackPath) {
+        updateBookmarkButton(false);
+      }
+      
+      showNotification('Bookmark removed', 'success');
+    }
+  } catch (error) {
+    console.error('Error removing bookmark:', error);
+    showNotification('Error removing bookmark', 'error');
+  }
+}
+
+// Switch bookmark view (list/grid)
+function switchBookmarkView(viewType) {
+  const container = document.getElementById('bookmarksTracksContainer');
+  
+  if (viewType === 'list') {
+    container.className = 'list-view';
+    bookmarkListViewBtn.classList.add('active');
+    bookmarkGridViewBtn.classList.remove('active');
+  } else {
+    container.className = 'grid-view';
+    bookmarkGridViewBtn.classList.add('active');
+    bookmarkListViewBtn.classList.remove('active');
+  }
+}
+
+// Sort bookmarks
+function sortBookmarks() {
+  const sortBy = bookmarkSortByEl.value;
+  
+  bookmarks.sort((a, b) => {
+    const { artist: artistA, title: titleA } = parseTrackInfo(a.name);
+    const { artist: artistB, title: titleB } = parseTrackInfo(b.name);
+    
+    switch (sortBy) {
+      case 'name':
+        return titleA.localeCompare(titleB);
+      case 'artist':
+        return artistA.localeCompare(artistB);
+      case 'dateBookmarked':
+        return new Date(b.bookmarkedAt) - new Date(a.bookmarkedAt);
+      default:
+        return 0;
+    }
+  });
+  
+  renderBookmarks();
+}
+
+// Format date for display
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString();
+}
+
+// Show notification
+function showNotification(message, type = 'info') {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = `notification ${type}`;
+  notification.textContent = message;
+  
+  // Add to body
+  document.body.appendChild(notification);
+  
+  // Show notification
+  setTimeout(() => notification.classList.add('show'), 100);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => document.body.removeChild(notification), 300);
+  }, 3000);
 }
 
 // Add music files
@@ -335,6 +642,9 @@ function loadTrack(index) {
   
   // Update track list highlighting
   updateActiveTrack();
+  
+  // Update bookmark button state
+  updateBookmarkButtonState(track.path);
 }
 
 // Update active track highlighting in lists

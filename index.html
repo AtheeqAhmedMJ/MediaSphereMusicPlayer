@@ -30,6 +30,7 @@
         <ul id="navMenu">
           <li class="active" data-view="home"><i class="fas fa-home"></i> Home</li>
           <li data-view="library"><i class="fas fa-music"></i> Your Library</li>
+          <li data-view="bookmarks"><i class="fas fa-bookmark"></i> Bookmarks</li>
           <li data-view="playlists"><i class="fas fa-list"></i> Playlists</li>
           <li data-view="browse"><i class="fas fa-search"></i> Browse</li>
         </ul>
@@ -41,6 +42,14 @@
           <button id="addFilesBtn" class="sidebar-btn"><i class="fas fa-file-audio"></i> Add Files</button>
           <button id="addFolderBtn" class="sidebar-btn"><i class="fas fa-folder-plus"></i> Add Folder</button>
         </div>
+      </div>
+      
+      <div class="sidebar-section">
+        <h3>Bookmarks</h3>
+        <div class="bookmark-actions">
+          <button id="clearBookmarksBtn" class="sidebar-btn"><i class="fas fa-trash"></i> Clear All</button>
+        </div>
+        <div id="bookmarkCount" class="bookmark-count">0 bookmarks</div>
       </div>
       
       <div class="sidebar-section">
@@ -134,6 +143,47 @@
           </div>
         </section>
 
+        <!-- Bookmarks View -->
+        <section id="bookmarksView" class="view">
+          <h1>Your Bookmarks</h1>
+          
+          <div class="bookmarks-controls">
+            <div class="sort-controls">
+              <label for="bookmarkSortBy">Sort by:</label>
+              <select id="bookmarkSortBy">
+                <option value="name">Name</option>
+                <option value="dateBookmarked">Date Bookmarked</option>
+                <option value="artist">Artist</option>
+              </select>
+            </div>
+            <div class="view-controls">
+              <button id="bookmarkListViewBtn" class="view-btn active"><i class="fas fa-list"></i></button>
+              <button id="bookmarkGridViewBtn" class="view-btn"><i class="fas fa-th-large"></i></button>
+            </div>
+          </div>
+          
+          <div id="bookmarksTracksContainer" class="list-view">
+            <table id="bookmarkTable" class="track-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Title</th>
+                  <th>Artist</th>
+                  <th>Date Bookmarked</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookmarkList">
+                <!-- Bookmarked tracks here -->
+              </tbody>
+            </table>
+            
+            <div id="bookmarkGrid" class="track-grid">
+              <!-- Grid view of bookmarked tracks -->
+            </div>
+          </div>
+        </section>
+
         <!-- Playlists View -->
         <section id="playlistsView" class="view">
           <h1>Your Playlists</h1>
@@ -210,7 +260,7 @@
         </div>
         <div class="track-actions">
           <button id="addToPlaylistBtn" class="action-icon" title="Add to playlist"><i class="fas fa-plus"></i></button>
-          <button id="favoriteBtn" class="action-icon" title="Add to favorites"><i class="far fa-heart"></i></button>
+          <button id="bookmarkBtn" class="action-icon" title="Bookmark track"><i class="far fa-bookmark"></i></button>
         </div>
       </div>
       

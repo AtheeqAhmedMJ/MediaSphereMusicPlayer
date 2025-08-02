@@ -229,8 +229,77 @@ body {
 }
 
 .playlist-menu li:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: var(--text-light);
+  background-color: rgba(52, 152, 219, 0.2);
+  color: var(--primary-color);
+}
+
+.bookmark-count {
+  font-size: 12px;
+  color: var(--text-dark);
+  text-align: center;
+  margin-top: 8px;
+  padding: 5px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: var(--border-radius);
+}
+
+.bookmarks-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.bookmark-card {
+  position: relative;
+  background-color: var(--light-bg);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  transition: all var(--transition-speed) ease;
+  cursor: pointer;
+}
+
+.bookmark-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.bookmark-card.active {
+  border: 2px solid var(--primary-color);
+}
+
+.bookmark-card .bookmark-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: var(--accent-color);
+  font-size: 16px;
+  z-index: 2;
+}
+
+.bookmark-card .remove-bookmark-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: rgba(255, 0, 0, 0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-speed) ease;
+  z-index: 3;
+}
+
+.bookmark-card:hover .remove-bookmark-btn {
+  opacity: 1;
+}
+
+.bookmark-card:hover .bookmark-indicator {
+  opacity: 0;
 }
 
 /* Main Content Area */
@@ -1197,7 +1266,47 @@ body {
   }
   
   .mini-album-art {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
   }
+}
+
+.bookmark-date {
+  color: var(--text-dark);
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: var(--border-radius);
+  color: white;
+  font-weight: 500;
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform var(--transition-speed) ease;
+  max-width: 300px;
+}
+
+.notification.show {
+  transform: translateX(0);
+}
+
+.notification.success {
+  background-color: #27ae60;
+}
+
+.notification.error {
+  background-color: #e74c3c;
+}
+
+.notification.info {
+  background-color: #3498db;
+}
+
+.notification.warning {
+  background-color: #f39c12;
 }
